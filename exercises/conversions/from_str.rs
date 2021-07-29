@@ -5,13 +5,13 @@
 use std::error;
 use std::str::FromStr;
 
+use std::fmt;
 #[derive(Debug)]
 struct Person {
     name: String,
     age: usize,
 }
 
-// I AM NOT DONE
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -23,9 +23,39 @@ struct Person {
 // 6. If while extracting the name and the age something goes wrong, an error should be returned
 // If everything goes well, then return a Result of a Person object
 
+#[derive(Debug)]
+enum PersonErr {
+    EMPTY_INPUT,
+    REQUIRE_TWO_PART,
+    EMPTY_NAME,
+    AGE_PARSE_FAIL,
+}
+impl error::Error for PersonErr {}
+
+impl fmt::Display for PersonErr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&format!("{}", self))
+    }
+}
 impl FromStr for Person {
     type Err = Box<dyn error::Error>;
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        if s.is_empty() {
+            return Err(Box::new(PersonErr::EMPTY_INPUT));
+        }
+        let a: Vec<&str> = s.split(",").collect();
+        if a.len() != 2 {
+            return Err(Box::new(PersonErr::REQUIRE_TWO_PART));
+        }
+        let name = a[0].to_string();
+        if name.is_empty() {
+            return Err(Box::new(PersonErr::EMPTY_NAME));
+        }
+        let age = a[1].parse().map_err(|_| Box::new(PersonErr::AGE_PARSE_FAIL))?;
+        Ok(Person {
+            name,
+            age,
+        })
     }
 }
 

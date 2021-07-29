@@ -5,6 +5,7 @@
 use std::convert::{TryFrom, TryInto};
 use std::error;
 
+use std::fmt;
 #[derive(Debug, PartialEq)]
 struct Color {
     red: u8,
@@ -12,7 +13,6 @@ struct Color {
     blue: u8,
 }
 
-// I AM NOT DONE
 
 // Your task is to complete this implementation
 // and return an Ok result of inner type Color.
@@ -23,22 +23,63 @@ struct Color {
 // but the slice implementation needs to check the slice length!
 // Also note that correct RGB color values must be integers in the 0..=255 range.
 
+
+#[derive(PartialEq, Debug)]
+enum CreationError {
+    MyError
+}
+// This is required so that `CreationError` can implement `error::Error`.
+impl fmt::Display for CreationError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("not valid")
+    }
+}
+
+impl error::Error for CreationError {}
+
 // Tuple implementation
 impl TryFrom<(i16, i16, i16)> for Color {
     type Error = Box<dyn error::Error>;
-    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {}
+    fn try_from(tuple: (i16, i16, i16)) -> Result<Self, Self::Error> {
+        if [tuple.0,tuple.1,tuple.2].iter().any(|&x| x < 0 || x > 255) {
+            return Err(Box::new(CreationError::MyError));
+        }
+        Ok(Color{
+            red: tuple.0 as u8,
+            green: tuple.1 as u8,
+            blue: tuple.2 as u8,
+        })
+    }
 }
 
 // Array implementation
 impl TryFrom<[i16; 3]> for Color {
     type Error = Box<dyn error::Error>;
-    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {}
+    fn try_from(arr: [i16; 3]) -> Result<Self, Self::Error> {
+        if arr.iter().any(|&x| x < 0 || x > 255) || arr.len() != 3 {
+            return Err(Box::new(CreationError::MyError));
+        }
+        Ok(Color{
+            red: arr[0] as u8,
+            green: arr[1] as u8,
+            blue: arr[2] as u8,
+        })
+    }
 }
 
 // Slice implementation
 impl TryFrom<&[i16]> for Color {
     type Error = Box<dyn error::Error>;
-    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {}
+    fn try_from(slice: &[i16]) -> Result<Self, Self::Error> {
+        if slice.iter().any(|&x| x < 0 || x > 255) || slice.len() != 3 {
+            return Err(Box::new(CreationError::MyError));
+        }
+        Ok(Color{
+            red: slice[0] as u8,
+            green: slice[1] as u8,
+            blue: slice[2] as u8,
+        })
+    }
 }
 
 fn main() {
